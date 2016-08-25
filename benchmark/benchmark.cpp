@@ -9,7 +9,9 @@
 int main() {
     using namespace rapidlab;
 
+
     boost::timer t;
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
     interval m(1,2);
     for (size_t i = 0; i < 10000000; ++i) {
         m = m - 3;

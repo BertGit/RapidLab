@@ -33,7 +33,9 @@ public:
             std::ostream& os, const interval& intval);
 };
 
-inline interval::interval() {}
+inline interval::interval() {
+	ival.vec = _mm_set_pd(0,-0);
+}
 
 inline interval::interval(double a) {
 	ival.vec = _mm_set_pd(a,-a);
@@ -76,5 +78,7 @@ inline m128d& interval::value() {
 }
 
 } // namespace rapidlab
+
+#include "interval/arithmetic.hpp"
 
 #endif

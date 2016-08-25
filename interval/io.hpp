@@ -1,10 +1,10 @@
 #ifndef RapidLab_io_hpp
 #define RapidLab_io_hpp
 
-namespace rapidlab {
+#include "interval/interval.hpp"
+// #include "box.hpp"
 
-#include "interval.hpp"
-#include "box.hpp"
+namespace rapidlab {
 
 #include <iostream>
 
@@ -15,13 +15,13 @@ inline std::ostream& operator<<(std::ostream& os, interval const& intval) {
 }
 
 // output box
-template<int _size>
-inline std::ostream& operator<<(std::ostream& os, box<_size> const& b) {
-    for (int i = 0; i < _size; i++) {
-        os << b[i] << std::endl;
-    }
-    return os;
-}
+// template<int _size>
+// inline std::ostream& operator<<(std::ostream& os, box<_size> const& b) {
+//     for (int i = 0; i < _size; i++) {
+//         os << b[i] << std::endl;
+//     }
+//     return os;
+// }
 
 } // namespace rapidlab
 

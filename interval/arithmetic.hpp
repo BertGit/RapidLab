@@ -37,6 +37,11 @@ inline double mag(const interval& a) {
     return std::max(a.upper(), -a.lower());
 }
 
+inline bool operator==(const interval& x, const interval& y) {
+    __m128d vcmp = _mm_cmpeq_pd(x.value().vec, y.value().vec);
+    return _mm_movemask_pd(vcmp) == 3;
+}
+
 inline const interval& operator+(const interval& x) {
     return x;
 }

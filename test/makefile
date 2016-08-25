@@ -51,7 +51,7 @@ $(OBJ_DIR)/gmock_main.a : $(OBJ_DIR)/gmock-all.o $(OBJ_DIR)/gtest-all.o $(OBJ_DI
 	$(AR) $(ARFLAGS) $@ $^
 
 $(OBJ_DIR)/interval.test.o : $(USER_DIR)/interval.test.cpp $(GMOCK_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/interval.test.cpp -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/interval.test.cpp -o $@ -I..
 
 interval_test : $(OBJ_DIR)/interval.test.o $(OBJ_DIR)/gmock_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
