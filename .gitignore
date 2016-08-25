@@ -1,0 +1,5 @@
+/googletest
+*.o
+*.a
+/test/interval_test
+/benchmark/benchmark
