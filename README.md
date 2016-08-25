@@ -1,2 +1,2 @@
 # RapidLab
-High-Performance Interval Library
+High-Performance Interval Library - WORK IN PROGRESS
