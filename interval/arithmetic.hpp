@@ -10,17 +10,27 @@ namespace rapidlab {
 
 namespace detail {
 
-inline __m128d c_swap(const __m128d& x, const __m128d& cond) {
-    __m128d t = _mm_and_pd(_mm_castsi128_pd(_mm_shuffle_epi32(
-            _mm_castpd_si128(x), 0x4e)), cond);
-
-    __m128d t2 = _mm_andnot_pd(cond, x);
-
-    return _mm_or_pd(t2, t);
+inline __m128d c_swap(__m128d a, __m128d cond) {
+    __m128d t = _mm_xor_pd((__m128d)_mm_shuffle_epi32((__m128i) a, 0x4e), a);
+    cond = _mm_and_pd(cond, t);
+    return _mm_xor_pd(cond, a);
 }
 
 inline double to_int(double r) {
     return rint(r);
+}
+
+inline interval recip(const interval& a) {
+    __m128d x = a.value().vec;
+
+	// Interval spans over zero
+    if (_mm_movemask_pd(_mm_cmple_pd((__m128d) {0, 0}, x)) == 3) {
+		return interval(-INFINITY, INFINITY);
+	}
+
+    x = _mm_shuffle_pd(x, x, 1);
+
+	return interval(_mm_div_pd((__m128d){-1.0, -1.0}, x));
 }
 
 } // namespace detail
@@ -37,47 +47,59 @@ inline double mag(const interval& a) {
     return std::max(a.upper(), -a.lower());
 }
 
-inline bool operator==(const interval& x, const interval& y) {
-    __m128d vcmp = _mm_cmpeq_pd(x.value().vec, y.value().vec);
+inline bool operator==(const interval& a, const interval& b) {
+    __m128d vcmp = _mm_cmpeq_pd(a.value().vec, b.value().vec);
     return _mm_movemask_pd(vcmp) == 3;
 }
 
-inline const interval& operator+(const interval& x) {
-    return x;
+inline const interval& operator+(const interval& a) {
+    return a;
 }
 
-inline interval operator-(const interval& x) {
-    return interval(_mm_shuffle_pd(x.value().vec, x.value().vec, 1));
+inline interval operator-(const interval& a) {
+    return interval(_mm_shuffle_pd(a.value().vec, a.value().vec, 1));
 }
 
-inline interval& operator+=(interval& x, const interval& y) {
-    x.value().vec = _mm_add_pd(x.value().vec, y.value().vec);
-    return x;
+inline interval& operator+=(interval& a, const interval& b) {
+    a.value().vec = _mm_add_pd(a.value().vec, b.value().vec);
+    return a;
 }
 
-inline interval operator+(const interval& x, const interval& y) {
-    interval z(x);
-    z += y;
-    return z;
+inline interval operator+(const interval& a, const interval& b) {
+    interval c(a);
+    c += b;
+    return c;
 }
 
-inline interval& operator-=(interval& x, const interval& y) {
-    x += -y;
-    return x;
+inline interval& operator-=(interval& a, const interval& b) {
+    a += -b;
+    return a;
 }
 
-inline interval operator-(const interval& x, const interval& y) {
-    return x + -y;
+inline interval operator-(const interval& a, const interval& b) {
+    return a + -b;
 }
 
-inline interval operator*(const interval& x, double y) {
-    if (y < 0) {
-        return interval(_mm_mul_pd((-x).value().vec, _mm_set1_pd(-y)));
+inline interval& operator*=(interval& a, double b) {
+    if (b < 0) {
+        a.value().vec = _mm_mul_pd((-a).value().vec, _mm_set1_pd(-b));
+    } else {
+        a.value().vec = _mm_mul_pd(a.value().vec, _mm_set1_pd(b));
     }
-    return interval(_mm_mul_pd(x.value().vec, _mm_set1_pd(y)));
+    return a;
 }
 
-inline interval operator*(const interval& a, const interval& b) {
+inline interval operator*(const interval& a, double b) {
+    interval c(a);
+    c *= b;
+    return c;
+}
+
+inline interval operator*(double a, const interval& b) {
+    return b * a;
+}
+
+inline interval& operator*=(interval& a, const interval& b) {
     __m128d x = a.value().vec;
     __m128d y = b.value().vec;
     __m128d t1 = _mm_castsi128_pd(_mm_shuffle_epi32(_mm_castpd_si128(x), 0xee));
@@ -86,8 +108,7 @@ inline interval operator*(const interval& a, const interval& b) {
 	__m128d t3 = _mm_xor_pd(x, t1);
 	__m128d t4 = _mm_xor_pd(y, t2);
 
-	if (_mm_movemask_pd(_mm_and_pd(t3, t4)))
-	{
+	if (_mm_movemask_pd(_mm_and_pd(t3, t4))) {
 		__m128d c = _mm_set1_pd(0.0);
 		__m128d c1 = _mm_cmple_pd(t2, c);
 		__m128d c2 = _mm_cmple_pd(t1, c);
@@ -96,19 +117,26 @@ inline interval operator*(const interval& a, const interval& b) {
 		x = detail::c_swap(_mm_xor_pd(x, c3), c1);
 		y = detail::c_swap(_mm_xor_pd(y, c3), c2);
 
-		return interval(x * _mm_xor_pd(y, c3));
-	}
+		a.value().vec = x * _mm_xor_pd(y, c3);
+	} else {
+    	// Zero overlap
+    	t1 = _mm_mul_pd(_mm_castsi128_pd(
+                _mm_shuffle_epi32(_mm_castpd_si128(x), 0x4e)),
+                _mm_unpacklo_pd(y, y));
+    	t2 = _mm_mul_pd(t2, x);
 
-	// Zero overlap
-	t1 = _mm_mul_pd(_mm_castsi128_pd(
-            _mm_shuffle_epi32(_mm_castpd_si128(x), 0x4e)),
-            _mm_unpacklo_pd(y, y));
-	t2 = _mm_mul_pd(t2, x);
-
-	return interval(_mm_max_pd(t1, t2));
+        a.value().vec = _mm_max_pd(t1, t2);
+    }
+    return a;
 }
 
-inline interval square(const interval& a) {
+inline interval operator*(const interval& a, const interval& b) {
+    interval c(a);
+    c *= b;
+    return c;
+}
+
+inline interval sqr(const interval& a) {
     __m128d x = a.value().vec;
 
     // Take high bit value
@@ -148,28 +176,15 @@ inline interval sqrt(const interval& a) {
 	return interval(_mm_xor_pd(x.vec, _mm_set_pd(0.0, -0.0)));
 }
 
-inline interval recip(const interval& a) {
-    m128d x;
-	x.vec = a.value().vec;
-
-    double rmin, rmax;
-
-	// Possible divide by zero
-	if ((x.d[1] >= 0) && (-x.d[0] <= 0)) {
-		return interval(-INFINITY, INFINITY);
-	}
-
-	//_MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
-	rmax = 1.0/x.d[0];
-
-	//_MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
-	rmin = 1.0/x.d[1];
-
-	return interval(rmin, -rmax);
+inline interval& operator/=(interval& a, const interval& b) {
+	a = a * detail::recip(b);
+    return a;
 }
 
 inline interval operator/(const interval& a, const interval& b) {
-	return a * recip(b);
+	interval c(a);
+    c /= b;
+    return c;
 }
 
 inline interval fmod(const interval& a, const interval& b)
