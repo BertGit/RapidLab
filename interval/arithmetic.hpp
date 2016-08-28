@@ -52,6 +52,10 @@ inline bool operator==(const interval& a, const interval& b) {
     return _mm_movemask_pd(vcmp) == 3;
 }
 
+inline bool operator!=(const interval& a, const interval& b) {
+    return !(a==b);
+}
+
 inline const interval& operator+(const interval& a) {
     return a;
 }
@@ -156,7 +160,7 @@ inline interval sqr(const interval& a) {
     if(_mm_movemask_pd(_mm_xor_pd(x, t1))) {
         // Interval not containing zero
         __m128d c = _mm_set1_pd(0.0);
-        //compare: is sup(x) <= 0?
+        // Compare: is sup(x) <= 0?
         __m128d c1 = _mm_cmple_pd(t1, c);
         __m128d c3 = _mm_set_pd(0.0, -0.0);
         // Swap for sup(x) <= 0
