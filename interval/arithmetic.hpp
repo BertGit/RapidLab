@@ -136,6 +136,17 @@ inline interval operator*(const interval& a, const interval& b) {
     return c;
 }
 
+inline interval& operator/=(interval& a, const interval& b) {
+	a = a * detail::recip(b);
+    return a;
+}
+
+inline interval operator/(const interval& a, const interval& b) {
+	interval c(a);
+    c /= b;
+    return c;
+}
+
 inline interval sqr(const interval& a) {
     __m128d x = a.value().vec;
 
@@ -174,17 +185,6 @@ inline interval sqrt(const interval& a) {
 	x.vec = _mm_sqrt_pd(x.vec);
 
 	return interval(_mm_xor_pd(x.vec, _mm_set_pd(0.0, -0.0)));
-}
-
-inline interval& operator/=(interval& a, const interval& b) {
-	a = a * detail::recip(b);
-    return a;
-}
-
-inline interval operator/(const interval& a, const interval& b) {
-	interval c(a);
-    c /= b;
-    return c;
 }
 
 inline interval fmod(const interval& a, const interval& b)

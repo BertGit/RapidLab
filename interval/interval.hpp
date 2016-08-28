@@ -3,6 +3,7 @@
 
 #include <emmintrin.h>
 #include <iostream>
+#include <cassert>
 
 namespace rapidlab {
 
@@ -19,7 +20,7 @@ public:
     interval();
     interval(double a);
     interval(double a, double b);
-    interval(const __m128d& v);
+    interval(__m128d v);
     interval(const interval& r);
 
     double lower() const;
@@ -42,10 +43,11 @@ inline interval::interval(double a) {
 }
 
 inline interval::interval(double a, double b) {
+    assert(a <= b && "lower bound cannot be greater than upper bound");
 	ival.vec = _mm_set_pd(b, -a);
 }
 
-inline interval::interval(const __m128d& v) {
+inline interval::interval(__m128d v) {
 	ival.vec = v;
 }
 
@@ -62,10 +64,12 @@ inline double interval::upper() const {
 }
 
 inline void interval::set_lower(double d) {
+    assert(d <= upper() && "lower bound cannot be greater than upper bound");
     ival.d[0] = -d;
 }
 
 inline void interval::set_upper(double d) {
+    assert(d >= lower() && "upper bound cannot be less than lower bound");
     ival.d[1] = d;
 }
 
