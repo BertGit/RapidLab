@@ -399,13 +399,13 @@ TEST_F(AnInterval, hasSquareRootOperationForPositiveIntervals) {
 }
 
 TEST_F(AnInterval, hasSquareRootOperationForPositiveIntervalsCorrectRounding) {
-    interval a = aTenthInterval;
+    interval a = aTenthInterval / 10;
     interval c = sqrt(a);
 
-    double doubleResult = std::sqrt(0.1);
+    double doubleResult = std::sqrt(0.01);
 
     EXPECT_THAT(c.lower(), Lt(doubleResult));
-    EXPECT_THAT(c.upper(), Ge(doubleResult));
+    EXPECT_THAT(c.upper(), Gt(doubleResult));
 }
 
 // By comparing square results to multiplication results,
