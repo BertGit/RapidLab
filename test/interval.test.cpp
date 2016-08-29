@@ -375,3 +375,60 @@ TEST_F(AnInterval, hasDivisionOperationNumeratorSpansZeroDenominatorNegativeCorr
     EXPECT_THAT(c.lower(), Lt(-10));
     EXPECT_THAT(c.upper(), Gt(10));
 }
+
+TEST_F(AnInterval, hasSquareRootOperationResultingInNanForIntervalSpanningZero) {
+    interval a(-1,1);
+    interval c = sqrt(a);
+
+    EXPECT_THAT(std::isnan(c.lower()), Eq(true));
+    EXPECT_THAT(std::isnan(c.upper()), Eq(true));
+
+    interval b(-2,-1);
+    interval d = sqrt(b);
+
+    EXPECT_THAT(std::isnan(d.lower()), Eq(true));
+    EXPECT_THAT(std::isnan(d.upper()), Eq(true));
+}
+
+TEST_F(AnInterval, hasSquareRootOperationForPositiveIntervals) {
+    interval a(4,36);
+    interval c = sqrt(a);
+
+    EXPECT_THAT(c.lower(), DoubleEq(2));
+    EXPECT_THAT(c.upper(), DoubleEq(6));
+}
+
+TEST_F(AnInterval, hasSquareRootOperationForPositiveIntervalsCorrectRounding) {
+    interval a = aTenthInterval;
+    interval c = sqrt(a);
+
+    double doubleResult = std::sqrt(0.1);
+
+    EXPECT_THAT(c.lower(), Lt(doubleResult));
+    EXPECT_THAT(c.upper(), Ge(doubleResult));
+}
+
+// By comparing square results to multiplication results,
+// rounding correctness is implicitly checked
+TEST_F(AnInterval, hasSquareOperationForPositiveIntervals) {
+    interval a(0.1,4.1);
+    interval c = sqr(a);
+
+    EXPECT_THAT(c, Eq(a*a));
+}
+
+TEST_F(AnInterval, hasSquareOperationForNegativeIntervals) {
+    interval a(-4.1,-0.1);
+    interval c = sqr(a);
+
+    EXPECT_THAT(c, Eq(a*a));
+}
+
+TEST_F(AnInterval, hasSquareOperationForIntervalSpanningZero) {
+    interval a(-4.1,0.1);
+    interval c = sqr(a);
+
+    interval d = a * a;
+    d.set_lower(0.0);
+    EXPECT_THAT(c, Eq(d));
+}

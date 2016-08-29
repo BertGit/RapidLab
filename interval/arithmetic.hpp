@@ -177,18 +177,14 @@ inline interval sqr(const interval& a) {
 }
 
 inline interval sqrt(const interval& a) {
-    //TODO: define sqrt also for values < 0
-    m128d x;
-	x.vec = a.value().vec;
+	if (a.value().d[0] > 0) return interval(_mm_set1_pd(NAN));
 
-	if (x.d[0] > 0) return interval(_mm_set1_pd(NAN));
+    __m128d x = a.value().vec;
+    // Two roundings to counteract with multiply
+    x *= (__m128d) {-0x1.ffffffffffff8p-1, 1.0};
+	x = _mm_sqrt_pd(x);
 
-	// Two roundings to counteract with multiply...
-	x.vec = _mm_mul_pd(x.vec, _mm_set_pd(1.0, -1.0));
-
-	x.vec = _mm_sqrt_pd(x.vec);
-
-	return interval(_mm_xor_pd(x.vec, _mm_set_pd(0.0, -0.0)));
+	return interval(_mm_xor_pd(x, _mm_set_pd(0.0, -0.0)));
 }
 
 inline interval fmod(const interval& a, const interval& b)
