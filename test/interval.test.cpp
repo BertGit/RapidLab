@@ -402,10 +402,8 @@ TEST_F(AnInterval, hasSquareRootOperationForPositiveIntervalsCorrectRounding) {
     interval a = aTenthInterval / 10;
     interval c = sqrt(a);
 
-    double doubleResult = std::sqrt(0.01);
-
-    EXPECT_THAT(c.lower(), Lt(doubleResult));
-    EXPECT_THAT(c.upper(), Gt(doubleResult));
+    EXPECT_THAT(c.lower(), Lt(0.1));
+    EXPECT_THAT(c.upper(), Gt(0.1));
 }
 
 // By comparing square results to multiplication results,
