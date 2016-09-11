@@ -439,3 +439,32 @@ TEST_F(AZeroSpanInterval, canBeSquared) {
     d.set_lower(0.0);
     EXPECT_THAT(c, Eq(d));
 }
+
+////////////////
+// PROPERTIES //
+////////////////
+TEST_F(AnInterval, hasMidPoint) {
+    interval a(2,4);
+    EXPECT_THAT(mid(a), DoubleEq(3));
+}
+
+TEST_F(AnInterval, hasDiameter) {
+    interval a(-1,4);
+    EXPECT_THAT(diam(a), DoubleEq(5));
+}
+
+TEST_F(AnInterval, hasMagnitude) {
+    interval a(-1,4);
+    interval b(-5,4);
+    EXPECT_THAT(mag(a), DoubleEq(4));
+    EXPECT_THAT(mag(b), DoubleEq(5));
+}
+
+TEST_F(AnInterval, hasCheckWhetherItSpansZero) {
+    interval a(-1,4);
+    interval b(-5,-4);
+    interval c(2,3);
+    EXPECT_THAT(zero_in(a), Eq(true));
+    EXPECT_THAT(zero_in(b), Eq(false));
+    EXPECT_THAT(zero_in(c), Eq(false));
+}
