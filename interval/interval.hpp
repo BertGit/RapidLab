@@ -84,5 +84,6 @@ inline m128d& interval::value() {
 } // namespace rapidlab
 
 #include "interval/arithmetic.hpp"
+#include "interval/attributes.hpp"
 
 #endif

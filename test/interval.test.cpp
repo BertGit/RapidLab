@@ -30,6 +30,13 @@ public:
     }
 };
 
+class APositiveInterval : public AnInterval {};
+class ANegativeInterval : public AnInterval {};
+class AZeroSpanInterval : public AnInterval {};
+
+////////////////////
+// INITIALIZATION //
+////////////////////
 TEST_F(AnInterval, defaultInitializesToZero) {
     interval v;
     EXPECT_THAT(v, Eq(interval(0)));
@@ -47,16 +54,32 @@ TEST_F(AnInterval, canBeConstructedFromLowerAndUpperBound) {
     EXPECT_THAT(v.upper(), Eq(2));
 }
 
-TEST_F(AnInterval, hasAdditionOperation) {
+//////////////
+// ADDITION //
+//////////////
+TEST_F(AnInterval, canBeAddedToAScalarAndViceVersa) {
+    interval a(-1,2);
+    double b = 3;
+    interval c = a + b;
+    interval d = b + a;
+
+    EXPECT_THAT(c.lower(), DoubleEq(2));
+    EXPECT_THAT(c.upper(), DoubleEq(5));
+    EXPECT_THAT(d, Eq(c));
+}
+
+TEST_F(AnInterval, canBeAddedToAnInterval) {
     interval a(-1,1);
     interval b(2,3);
     interval c = a + b;
+    interval d = b + a;
 
     EXPECT_THAT(c.lower(), DoubleEq(1));
     EXPECT_THAT(c.upper(), DoubleEq(4));
+    EXPECT_THAT(c, Eq(d));
 }
 
-TEST_F(AnInterval, hasAdditionOperationWithCorrectRounding) {
+TEST_F(AnInterval, canBeAddedToAnIntervalHavingCorrectRounding) {
     interval a(0);
     for (size_t i = 0; i < 10; ++i)
         a += aTenthInterval;
@@ -65,16 +88,34 @@ TEST_F(AnInterval, hasAdditionOperationWithCorrectRounding) {
     EXPECT_THAT(a.upper(), Gt(1));
 }
 
-TEST_F(AnInterval, hasSubtractionOperation) {
+/////////////////
+// SUBTRACTION //
+/////////////////
+TEST_F(AnInterval, canBeSubtractedFromAScalarAndViceVersa) {
+    interval a(-1,1);
+    double b = 3;
+    interval c = a - b;
+    interval d = b - a;
+
+    EXPECT_THAT(c.lower(), DoubleEq(-4));
+    EXPECT_THAT(c.upper(), DoubleEq(-2));
+    EXPECT_THAT(d.lower(), DoubleEq(2));
+    EXPECT_THAT(d.upper(), DoubleEq(4));
+}
+
+TEST_F(AnInterval, canBeSubtractedFromAnInterval) {
     interval a(-1,1);
     interval b(2,3);
     interval c = a - b;
+    interval d = b - a;
 
     EXPECT_THAT(c.lower(), DoubleEq(-4));
     EXPECT_THAT(c.upper(), DoubleEq(-1));
+    EXPECT_THAT(d.lower(), DoubleEq(1));
+    EXPECT_THAT(d.upper(), DoubleEq(4));
 }
 
-TEST_F(AnInterval, hasSubtractionOperationWithCorrectRounding) {
+TEST_F(AnInterval, canBeSubtracedFromAnIntervalHavingCorrectRounding) {
     interval a(1);
     for (size_t i = 0; i < 10; ++i)
         a -= aTenthInterval;
@@ -83,16 +124,87 @@ TEST_F(AnInterval, hasSubtractionOperationWithCorrectRounding) {
     EXPECT_THAT(a.upper(), Gt(0));
 }
 
-TEST_F(AnInterval, hasMultiplicationOperationBothIntervalsPositive) {
+////////////////////
+// MULTIPLICATION //
+////////////////////
+TEST_F(APositiveInterval, canBeMultipliedWithAPositiveScalarAndViceVersa) {
+    interval a(2,3);
+    double b = 2;
+    interval c = a * b;
+    interval d = b * a;
+
+    EXPECT_THAT(c.lower(), DoubleEq(4));
+    EXPECT_THAT(c.upper(), DoubleEq(6));
+    EXPECT_THAT(c, Eq(d));
+}
+
+TEST_F(APositiveInterval, canBeMultipliedWithANegativeScalarAndViceVersa) {
+    interval a(2,3);
+    double b = -2;
+    interval c = a * b;
+    interval d = b * a;
+
+    EXPECT_THAT(c.lower(), DoubleEq(-6));
+    EXPECT_THAT(c.upper(), DoubleEq(-4));
+    EXPECT_THAT(c, Eq(d));
+}
+
+TEST_F(ANegativeInterval, canBeMultipliedWithAPositiveScalarAndViceVersa) {
+    interval a(-3,-2);
+    double b = 2;
+    interval c = a * b;
+    interval d = b * a;
+
+    EXPECT_THAT(c.lower(), DoubleEq(-6));
+    EXPECT_THAT(c.upper(), DoubleEq(-4));
+    EXPECT_THAT(c, Eq(d));
+}
+
+TEST_F(ANegativeInterval, canBeMultipliedWithANegativeScalarAndViceVersa) {
+    interval a(-3,-2);
+    double b = -2;
+    interval c = a * b;
+    interval d = b * a;
+
+    EXPECT_THAT(c.lower(), DoubleEq(4));
+    EXPECT_THAT(c.upper(), DoubleEq(6));
+    EXPECT_THAT(c, Eq(d));
+}
+
+TEST_F(AZeroSpanInterval, canBeMultipliedWithAPositiveScalarAndViceVersa) {
+    interval a(-3,2);
+    double b = 2;
+    interval c = a * b;
+    interval d = b * a;
+
+    EXPECT_THAT(c.lower(), DoubleEq(-6));
+    EXPECT_THAT(c.upper(), DoubleEq(4));
+    EXPECT_THAT(c, Eq(d));
+}
+
+TEST_F(AZeroSpanInterval, canBeMultipliedWithANegativeScalarAndViceVersa) {
+    interval a(-3,2);
+    double b = -2;
+    interval c = a * b;
+    interval d = b * a;
+
+    EXPECT_THAT(c.lower(), DoubleEq(-4));
+    EXPECT_THAT(c.upper(), DoubleEq(6));
+    EXPECT_THAT(c, Eq(d));
+}
+
+TEST_F(APositiveInterval, canBeMultipliedWithAPositiveInterval) {
     interval a(1,2);
     interval b(2,5);
     interval c = a * b;
+    interval d = b * a;
 
     EXPECT_THAT(c.lower(), DoubleEq(2));
     EXPECT_THAT(c.upper(), DoubleEq(10));
+    EXPECT_THAT(c, Eq(d));
 }
 
-TEST_F(AnInterval, hasMultiplicationOperationBothIntervalsPositiveCorrectRounding) {
+TEST_F(APositiveInterval, canBeMultipliedWithAPositiveIntervalHavingCorrectRounding) {
     interval a = 1 + aTenthInterval;
     EXPECT_THAT(a.lower(), DoubleEq(1.1));
     EXPECT_THAT(a.upper(), DoubleEq(1.1));
@@ -103,16 +215,18 @@ TEST_F(AnInterval, hasMultiplicationOperationBothIntervalsPositiveCorrectRoundin
     EXPECT_THAT(a.upper(), Gt(1.21));
 }
 
-TEST_F(AnInterval, hasMultiplicationOperationBothIntervalsNegative) {
+TEST_F(ANegativeInterval, canBeMultipliedWithANegativeInterval) {
     interval a(-2,-1);
     interval b(-5,-2);
     interval c = a * b;
+    interval d = b * a;
 
     EXPECT_THAT(c.lower(), DoubleEq(2));
     EXPECT_THAT(c.upper(), DoubleEq(10));
+    EXPECT_THAT(c, Eq(d));
 }
 
-TEST_F(AnInterval, hasMultiplicationOperationBothIntervalsNegativeCorrectRounding) {
+TEST_F(ANegativeInterval, canBeMultipliedWithANegativeIntervalHavingCorrectRounding) {
     interval a = 1 + aTenthInterval;
     a = -a;
     EXPECT_THAT(a.lower(), DoubleEq(-1.1));
@@ -124,16 +238,18 @@ TEST_F(AnInterval, hasMultiplicationOperationBothIntervalsNegativeCorrectRoundin
     EXPECT_THAT(a.upper(), Gt(1.21));
 }
 
-TEST_F(AnInterval, hasMultiplicationOperationOneIntervalNegativeOnePositive) {
+TEST_F(APositiveInterval, canBeMultipliedWithANegativeInterval) {
     interval a(-2,-1);
     interval b(3,6);
     interval c = a * b;
+    interval d = b * a;
 
     EXPECT_THAT(c.lower(), DoubleEq(-12));
     EXPECT_THAT(c.upper(), DoubleEq(-3));
+    EXPECT_THAT(c, Eq(d));
 }
 
-TEST_F(AnInterval, hasMultiplicationOperationOneIntervalNegativeOnePositiveCorrectRounding) {
+TEST_F(APositiveInterval, canBeMultipliedWithANegativeIntervalHavingCorrectRounding) {
     interval a = 1 + aTenthInterval;
     interval b = -1 - aTenthInterval;
 
@@ -143,35 +259,18 @@ TEST_F(AnInterval, hasMultiplicationOperationOneIntervalNegativeOnePositiveCorre
     EXPECT_THAT(c.upper(), Gt(-1.21));
 }
 
-TEST_F(AnInterval, hasMultiplicationOperationOneIntervalPositiveOneNegative) {
-    interval a(3,6);
-    interval b(-2,-1);
-    interval c = a * b;
-
-    EXPECT_THAT(c.lower(), DoubleEq(-12));
-    EXPECT_THAT(c.upper(), DoubleEq(-3));
-}
-
-TEST_F(AnInterval, hasMultiplicationOperationOneIntervalPositiveOneNegativeCorrectRounding) {
-    interval a = -1 - aTenthInterval;
-    interval b = 1 + aTenthInterval;
-
-    interval c = a * b;
-
-    EXPECT_THAT(c.lower(), Lt(-1.21));
-    EXPECT_THAT(c.upper(), Gt(-1.21));
-}
-
-TEST_F(AnInterval, hasMultiplicationOperationOneIntervalSpansZeroOnePositive) {
+TEST_F(AZeroSpanInterval, canBeMultipliedWithAPositiveInterval) {
     interval a(-2,1);
     interval b(2,3);
     interval c = a * b;
+    interval d = b * a;
 
     EXPECT_THAT(c.lower(), DoubleEq(-6));
     EXPECT_THAT(c.upper(), DoubleEq(3));
+    EXPECT_THAT(c, Eq(d));
 }
 
-TEST_F(AnInterval, hasMultiplicationOperationOneIntervalSpansZeroOnePositiveCorrectRounding) {
+TEST_F(AZeroSpanInterval, canBeMultipliedWithAPositiveIntervalHavingCorrectRounding) {
     interval a(-(1 + aTenthInterval.upper()), 1 + aTenthInterval.upper());
     interval b = 1 + aTenthInterval;
 
@@ -181,35 +280,18 @@ TEST_F(AnInterval, hasMultiplicationOperationOneIntervalSpansZeroOnePositiveCorr
     EXPECT_THAT(c.upper(), Gt(1.21));
 }
 
-TEST_F(AnInterval, hasMultiplicationOperationOneIntervalPositiveOneSpansZero) {
-    interval a(2,3);
-    interval b(-2,1);
-    interval c = a * b;
-
-    EXPECT_THAT(c.lower(), DoubleEq(-6));
-    EXPECT_THAT(c.upper(), DoubleEq(3));
-}
-
-TEST_F(AnInterval, hasMultiplicationOperationOneIntervalPositiveOneSpansZeroCorrectRounding) {
-    interval a = 1 + aTenthInterval;
-    interval b(-(1 + aTenthInterval.upper()), 1 + aTenthInterval.upper());
-
-    interval c = a * b;
-
-    EXPECT_THAT(c.lower(), Lt(-1.21));
-    EXPECT_THAT(c.upper(), Gt(1.21));
-}
-
-TEST_F(AnInterval, hasMultiplicationOperationOneIntervalSpansZeroOneNegative) {
+TEST_F(AZeroSpanInterval, canBeMultipliedWithANegativeInterval) {
     interval a(-2,1);
     interval b(-3,-2);
     interval c = a * b;
+    interval d = b * a;
 
     EXPECT_THAT(c.lower(), DoubleEq(-3));
     EXPECT_THAT(c.upper(), DoubleEq(6));
+    EXPECT_THAT(c, Eq(d));
 }
 
-TEST_F(AnInterval, hasMultiplicationOperationOneIntervalSpansZeroOneNegativeCorrectRounding) {
+TEST_F(AZeroSpanInterval, canBeMultipliedWithANegativeIntervalHavingCorrectRounding) {
     interval a(-(1 + aTenthInterval.upper()), 1 + aTenthInterval.upper());
     interval b = -interval(1 + aTenthInterval);
 
@@ -219,163 +301,90 @@ TEST_F(AnInterval, hasMultiplicationOperationOneIntervalSpansZeroOneNegativeCorr
     EXPECT_THAT(c.upper(), Gt(1.21));
 }
 
-TEST_F(AnInterval, hasMultiplicationOperationOneIntervalNegativeOneSpansZero) {
-    interval a(-3,-2);
-    interval b(-2,1);
-    interval c = a * b;
-
-    EXPECT_THAT(c.lower(), DoubleEq(-3));
-    EXPECT_THAT(c.upper(), DoubleEq(6));
-}
-
-TEST_F(AnInterval, hasMultiplicationOperationOneIntervalNegativeOneSpansZeroCorrectRounding) {
-    interval a = -interval(1 + aTenthInterval);
-    interval b(-(1 + aTenthInterval.upper()), 1 + aTenthInterval.upper());
-
-    interval c = a * b;
-
-    EXPECT_THAT(c.lower(), Lt(-1.21));
-    EXPECT_THAT(c.upper(), Gt(1.21));
-}
-
-TEST_F(AnInterval, hasMultiplicationOperationBothIntervalsSpanZero) {
+TEST_F(AZeroSpanInterval, canBeMultipliedWithAZeroSpanInterval) {
     interval a(-5,2);
     interval b(-3,4);
     interval c = a * b;
+    interval d = b * a;
 
     EXPECT_THAT(c.lower(), DoubleEq(-20));
     EXPECT_THAT(c.upper(), DoubleEq(15));
+    EXPECT_THAT(c, Eq(d));
 }
 
-TEST_F(AnInterval, hasMultiplicationOperationBothIntervalsSpanZero2) {
+TEST_F(AZeroSpanInterval, canBeMultipliedWithAZeroSpanInterval2) {
     interval a(-5,7);
     interval b(-3,4);
     interval c = a * b;
+    interval d = b * a;
 
     EXPECT_THAT(c.lower(), DoubleEq(-21));
     EXPECT_THAT(c.upper(), DoubleEq(28));
+    EXPECT_THAT(c, Eq(d));
 }
 
-TEST_F(AnInterval, hasMultiplicationOperationBothIntervalsSpanZeroCorrectRounding) {
+TEST_F(AZeroSpanInterval, canBeMultipliedWithAZeroSpanIntervalHavingCorrectRounding) {
     interval a(-(1 + aTenthInterval.upper()), 1 + aTenthInterval.upper());
     interval b(-(1 + aTenthInterval.upper()), 1 + aTenthInterval.upper());
-
     interval c = a * b;
 
     EXPECT_THAT(c.lower(), Lt(-1.21));
     EXPECT_THAT(c.upper(), Gt(1.21));
 }
 
-TEST_F(AnInterval, hasDivisionOperationResultingInInfinityForDenominatorSpanningZero) {
-    interval a(1);
-    interval b(-1,1);
-
+//////////////
+// DIVISION //
+//////////////
+TEST_F(AnInterval, canBeDividedByAZeroScalarResultingInInfinity) {
+    interval a(2,3);
+    double b = 0;
     interval c = a / b;
 
     EXPECT_THAT(c.lower(), DoubleEq(-INFINITY));
     EXPECT_THAT(c.upper(), DoubleEq(INFINITY));
 }
 
-TEST_F(AnInterval, hasDivisionOperationNumeratorPositiveDenominatorPositive) {
-    interval a(1,3);
-    interval b(2,4);
+// Division is implemented in terms of multiplication with a reciprocal
+// Checking for reciprocal correctness will suffice
+TEST_F(APositiveInterval, hasCorrectReciprocal) {
+    interval a(2,4);
 
-    interval c = a / b;
+    interval c = 1.0 / a;
 
     EXPECT_THAT(c.lower(), DoubleEq(0.25));
-    EXPECT_THAT(c.upper(), DoubleEq(1.5));
+    EXPECT_THAT(c.upper(), DoubleEq(0.5));
 }
 
-TEST_F(AnInterval, hasDivisionOperationNumeratorPositiveDenominatorPositiveCorrectRounding) {
-    interval a(1);
-    interval b = aTenthInterval;
+TEST_F(APositiveInterval, hasCorrectReciprocalHavingCorrectRounding) {
+    interval a = aTenthInterval;
 
-    interval c = a / b;
+    interval c = 1.0 / a;
 
     EXPECT_THAT(c.lower(), Lt(10));
     EXPECT_THAT(c.upper(), Gt(10));
 }
 
-TEST_F(AnInterval, hasDivisionOperationNumeratorPositiveDenominatorNegative) {
-    interval a(1,3);
-    interval b(-4,-2);
+TEST_F(ANegativeInterval, hasCorrectReciprocal) {
+    interval a(-4,-2);
 
-    interval c = a / b;
+    interval c = 1.0 / a;
 
-    EXPECT_THAT(c.lower(), DoubleEq(-1.5));
+    EXPECT_THAT(c.lower(), DoubleEq(-0.5));
     EXPECT_THAT(c.upper(), DoubleEq(-0.25));
 }
 
-TEST_F(AnInterval, hasDivisionOperationNumeratorPositiveDenominatorNegativeCorrectRounding) {
-    interval a(1);
-    interval b = -aTenthInterval;
+TEST_F(ANegativeInterval, hasCorrectReciprocalHavingCorrectRounding) {
+    interval a = -aTenthInterval;
 
-    interval c = a / b;
-
-    EXPECT_THAT(c.lower(), Lt(-10));
-    EXPECT_THAT(c.upper(), Gt(-10));
-}
-
-TEST_F(AnInterval, hasDivisionOperationNumeratorNegativeDenominatorPositive) {
-    interval a(-4,-3);
-    interval b(4,6);
-
-    interval c = a / b;
-
-    EXPECT_THAT(c.lower(), DoubleEq(-1));
-    EXPECT_THAT(c.upper(), DoubleEq(-0.5));
-}
-
-TEST_F(AnInterval, hasDivisionOperationNumeratorNegativeDenominatorPositiveCorrectRounding) {
-    interval a(-1);
-    interval b = aTenthInterval;
-
-    interval c = a / b;
+    interval c = 1.0 / a;
 
     EXPECT_THAT(c.lower(), Lt(-10));
     EXPECT_THAT(c.upper(), Gt(-10));
 }
 
-TEST_F(AnInterval, hasDivisionOperationNumeratorSpansZeroDenominatorPositive) {
-    interval a(-4,2);
-    interval b(4,6);
-
-    interval c = a / b;
-
-    EXPECT_THAT(c.lower(), DoubleEq(-1));
-    EXPECT_THAT(c.upper(), DoubleEq(0.5));
-}
-
-TEST_F(AnInterval, hasDivisionOperationNumeratorSpansZeroDenominatorPositiveCorrectRounding) {
-    interval a(-1,1);
-    interval b = aTenthInterval;
-
-    interval c = a / b;
-
-    EXPECT_THAT(c.lower(), Lt(-10));
-    EXPECT_THAT(c.upper(), Gt(10));
-}
-
-TEST_F(AnInterval, hasDivisionOperationNumeratorSpansZeroDenominatorNegative) {
-    interval a(-4,2);
-    interval b(-8,-4);
-
-    interval c = a / b;
-
-    EXPECT_THAT(c.lower(), DoubleEq(-0.5));
-    EXPECT_THAT(c.upper(), DoubleEq(1));
-}
-
-TEST_F(AnInterval, hasDivisionOperationNumeratorSpansZeroDenominatorNegativeCorrectRounding) {
-    interval a(-1,1);
-    interval b = -aTenthInterval;
-
-    interval c = a / b;
-
-    EXPECT_THAT(c.lower(), Lt(-10));
-    EXPECT_THAT(c.upper(), Gt(10));
-}
-
+/////////////////////
+// SQUARE and SQRT //
+/////////////////////
 TEST_F(AnInterval, hasSquareRootOperationResultingInNanForIntervalSpanningZero) {
     interval a(-1,1);
     interval c = sqrt(a);
@@ -398,7 +407,7 @@ TEST_F(AnInterval, hasSquareRootOperationForPositiveIntervals) {
     EXPECT_THAT(c.upper(), DoubleEq(6));
 }
 
-TEST_F(AnInterval, hasSquareRootOperationForPositiveIntervalsCorrectRounding) {
+TEST_F(AnInterval, hasSquareRootOperationForPositiveIntervalsHavingCorrectRounding) {
     interval a = aTenthInterval / 10;
     interval c = sqrt(a);
 
@@ -408,21 +417,21 @@ TEST_F(AnInterval, hasSquareRootOperationForPositiveIntervalsCorrectRounding) {
 
 // By comparing square results to multiplication results,
 // rounding correctness is implicitly checked
-TEST_F(AnInterval, hasSquareOperationForPositiveIntervals) {
+TEST_F(APositiveInterval, canBeSquared) {
     interval a(0.1,4.1);
     interval c = sqr(a);
 
     EXPECT_THAT(c, Eq(a*a));
 }
 
-TEST_F(AnInterval, hasSquareOperationForNegativeIntervals) {
+TEST_F(ANegativeInterval, canBeSquared) {
     interval a(-4.1,-0.1);
     interval c = sqr(a);
 
     EXPECT_THAT(c, Eq(a*a));
 }
 
-TEST_F(AnInterval, hasSquareOperationForIntervalSpanningZero) {
+TEST_F(AZeroSpanInterval, canBeSquared) {
     interval a(-4.1,0.1);
     interval c = sqr(a);
 

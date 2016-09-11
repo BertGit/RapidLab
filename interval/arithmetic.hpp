@@ -35,18 +35,9 @@ inline interval recip(const interval& a) {
 
 } // namespace detail
 
-inline double mid(const interval& a) {
-    return .5 * (a.lower() + a.upper());
-}
-
-inline double diam(const interval& a) {
-    return a.upper() - a.lower();
-}
-
-inline double mag(const interval& a) {
-    return std::max(a.upper(), -a.lower());
-}
-
+////////////////////
+// OPERATOR EQUAL //
+////////////////////
 inline bool operator==(const interval& a, const interval& b) {
     __m128d vcmp = _mm_cmpeq_pd(a.value().vec, b.value().vec);
     return _mm_movemask_pd(vcmp) == 3;
@@ -56,6 +47,9 @@ inline bool operator!=(const interval& a, const interval& b) {
     return !(a==b);
 }
 
+//////////////////////
+// UNARY PLUS MINUS //
+//////////////////////
 inline const interval& operator+(const interval& a) {
     return a;
 }
@@ -64,6 +58,9 @@ inline interval operator-(const interval& a) {
     return interval(_mm_shuffle_pd(a.value().vec, a.value().vec, 1));
 }
 
+///////////////////
+// OPERATOR PLUS //
+///////////////////
 inline interval& operator+=(interval& a, const interval& b) {
     a.value().vec = _mm_add_pd(a.value().vec, b.value().vec);
     return a;
@@ -75,6 +72,9 @@ inline interval operator+(const interval& a, const interval& b) {
     return c;
 }
 
+////////////////////
+// OPERATOR MINUS //
+////////////////////
 inline interval& operator-=(interval& a, const interval& b) {
     a += -b;
     return a;
@@ -84,6 +84,9 @@ inline interval operator-(const interval& a, const interval& b) {
     return a + -b;
 }
 
+/////////////////////////////
+// OPERATOR MULTIPLICATION //
+/////////////////////////////
 inline interval& operator*=(interval& a, double b) {
     if (b < 0) {
         a.value().vec = _mm_mul_pd((-a).value().vec, _mm_set1_pd(-b));
@@ -140,6 +143,30 @@ inline interval operator*(const interval& a, const interval& b) {
     return c;
 }
 
+///////////////////////
+// OPERATOR DIVISION //
+///////////////////////
+inline interval& operator/=(interval& a, double b) {
+    if (b == 0) {
+        a.value().vec = _mm_set1_pd(INFINITY);
+    } else if (b < 0) {
+        a.value().vec = _mm_div_pd((-a).value().vec, _mm_set1_pd(-b));
+    } else {
+        a.value().vec = _mm_div_pd(a.value().vec, _mm_set1_pd(b));
+    }
+    return a;
+}
+
+inline interval operator/(const interval& a, double b) {
+    interval c(a);
+    c /= b;
+    return c;
+}
+
+inline interval operator/(double a, const interval& b) {
+    return a * detail::recip(b);
+}
+
 inline interval& operator/=(interval& a, const interval& b) {
 	a = a * detail::recip(b);
     return a;
@@ -149,6 +176,20 @@ inline interval operator/(const interval& a, const interval& b) {
 	interval c(a);
     c /= b;
     return c;
+}
+
+//////////////////
+// SQRT AND SQR //
+//////////////////
+inline interval sqrt(const interval& a) {
+	if (a.value().d[0] > 0) return interval(_mm_set1_pd(NAN));
+
+    __m128d x = a.value().vec;
+    // Two roundings to counteract with multiply
+    x *= (__m128d) {-0x1.ffffffffffff8p-1, 1.0};
+	x = _mm_sqrt_pd(x);
+
+	return interval(_mm_xor_pd(x, _mm_set_pd(0.0, -0.0)));
 }
 
 inline interval sqr(const interval& a) {
@@ -176,17 +217,9 @@ inline interval sqr(const interval& a) {
     return interval(result);
 }
 
-inline interval sqrt(const interval& a) {
-	if (a.value().d[0] > 0) return interval(_mm_set1_pd(NAN));
-
-    __m128d x = a.value().vec;
-    // Two roundings to counteract with multiply
-    x *= (__m128d) {-0x1.ffffffffffff8p-1, 1.0};
-	x = _mm_sqrt_pd(x);
-
-	return interval(_mm_xor_pd(x, _mm_set_pd(0.0, -0.0)));
-}
-
+///////////////////////////
+// FLOATING POINT MODULO //
+///////////////////////////
 inline interval fmod(const interval& a, const interval& b)
 {
     double const &yb = (a.lower() < 0) ? b.lower() : b.upper();
@@ -194,29 +227,32 @@ inline interval fmod(const interval& a, const interval& b)
     return a - n * b;
 }
 
-inline interval cos(const interval& a) {
-    // Get lower bound within [0, pi]
-    const interval pi2 = pi_twice();
-    interval tmp = fmod(a, pi2);
-    if (diam(tmp) >= pi2.lower()) return interval(-1, 1); // full period
-    if (tmp.lower() >= pi_upper()) return -cos(tmp - pi());
-    double l = tmp.lower();
-    double u = tmp.upper();
-
-    // Separate into monotone subintervals
-    if (u <= pi_lower()) {
-        return interval(std::cos(u), std::cos(l));
-    } else if (u <= pi2.lower()) {
-        return interval(-1, std::cos(std::min(pi2.lower() - u, l)));
-    } else {
-        return interval(-1, 1);
-    }
-}
-
-inline interval sin(const interval& a) {
-    interval r = cos(a - pi_half());
-    return r;
-}
+//////////////////
+// TRIGONOMETRY //
+//////////////////
+// inline interval cos(const interval& a) {
+//     // Get lower bound within [0, pi]
+//     const interval pi2 = pi_twice();
+//     interval tmp = fmod(a, pi2);
+//     if (diam(tmp) >= pi2.lower()) return interval(-1, 1); // full period
+//     if (tmp.lower() >= pi_upper()) return -cos(tmp - pi());
+//     double l = tmp.lower();
+//     double u = tmp.upper();
+//
+//     // Separate into monotone subintervals
+//     if (u <= pi_lower()) {
+//         return interval(std::cos(u), std::cos(l));
+//     } else if (u <= pi2.lower()) {
+//         return interval(-1, std::cos(std::min(pi2.lower() - u, l)));
+//     } else {
+//         return interval(-1, 1);
+//     }
+// }
+//
+// inline interval sin(const interval& a) {
+//     interval r = cos(a - pi_half());
+//     return r;
+// }
 
 } // namespace rapidlab
 
