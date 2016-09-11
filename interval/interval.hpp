@@ -8,8 +8,8 @@
 namespace rapidlab {
 
 union m128d {
-	__m128d vec;
-	double d[2];
+    __m128d vec;
+    double d[2];
 };
 
 class interval
@@ -28,35 +28,35 @@ public:
     void set_lower(double d);
     void set_upper(double d);
     const m128d& value() const;
-	m128d& value();
+    m128d& value();
 
     friend inline std::ostream& operator<<(
             std::ostream& os, const interval& intval);
 };
 
 inline interval::interval() {
-	ival.vec = _mm_set_pd(0,-0);
+    ival.vec = _mm_set_pd(0,-0);
 }
 
 inline interval::interval(double a) {
-	ival.vec = _mm_set_pd(a,-a);
+    ival.vec = _mm_set_pd(a,-a);
 }
 
 inline interval::interval(double a, double b) {
     assert(a <= b && "lower bound cannot be greater than upper bound");
-	ival.vec = _mm_set_pd(b, -a);
+    ival.vec = _mm_set_pd(b, -a);
 }
 
 inline interval::interval(__m128d v) {
-	ival.vec = v;
+    ival.vec = v;
 }
 
 inline interval::interval(const interval& r) {
-	ival = r.value();
+    ival = r.value();
 }
 
 inline double interval::lower() const {
-	return -ival.d[0];
+    return -ival.d[0];
 }
 
 inline double interval::upper() const {
@@ -82,8 +82,5 @@ inline m128d& interval::value() {
 }
 
 } // namespace rapidlab
-
-#include "interval/arithmetic.hpp"
-#include "interval/attributes.hpp"
 
 #endif

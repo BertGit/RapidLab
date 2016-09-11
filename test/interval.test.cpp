@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-#include "interval/interval.hpp"
+#include "interval/core.hpp"
 #include "interval/io.hpp"
 
 #include <iomanip>

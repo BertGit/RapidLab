@@ -82,13 +82,6 @@ inline int max_element(array<double, _size> const& arr) {
     return max_el;
 }
 
-inline int zero_in(interval const& a) {
-    if (a.lower() <= 0 && a.upper() >= 0) {
-        return 1;
-    }
-    return 0;
-}
-
 inline interval intersect(interval const& a, interval const& b) {
     __m128d x = a.value().vec;
     __m128d y = b.value().vec;
