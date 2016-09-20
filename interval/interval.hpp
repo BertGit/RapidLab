@@ -30,8 +30,7 @@ public:
     const m128d& value() const;
     m128d& value();
 
-    friend inline std::ostream& operator<<(
-            std::ostream& os, const interval& intval);
+    friend std::ostream& operator<<(std::ostream& os, const interval& intval);
 };
 
 inline interval::interval() {
@@ -79,6 +78,11 @@ inline const m128d& interval::value() const {
 
 inline m128d& interval::value() {
     return ival;
+}
+
+inline std::ostream& operator<<(std::ostream& os, const interval& a) {
+    os << '[' << a.lower() << ',' << a.upper() << ']';
+    return os;
 }
 
 } // namespace rapidlab

@@ -3,9 +3,11 @@ GMOCK_DIR = ../googletest/googlemock
 
 USER_DIR = .
 
+CXX = g++
+
 CPPFLAGS += -isystem $(GTEST_DIR)/include -isystem $(GMOCK_DIR)/include
 
-CXXFLAGS += -g -Wall -Wextra -pthread -std=c++11
+CXXFLAGS += -g -Wall -Wextra -std=c++11 -O3
 
 TESTS = interval_test
 
@@ -53,5 +55,8 @@ $(OBJ_DIR)/gmock_main.a : $(OBJ_DIR)/gmock-all.o $(OBJ_DIR)/gtest-all.o $(OBJ_DI
 $(OBJ_DIR)/interval.test.o : $(USER_DIR)/interval.test.cpp $(GMOCK_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/interval.test.cpp -o $@ -I..
 
-interval_test : $(OBJ_DIR)/interval.test.o $(OBJ_DIR)/gmock_main.a
+$(OBJ_DIR)/optimizer.test.o : $(USER_DIR)/optimizer.test.cpp $(GMOCK_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/optimizer.test.cpp -o $@ -I..
+
+interval_test : $(OBJ_DIR)/interval.test.o $(OBJ_DIR)/optimizer.test.o $(OBJ_DIR)/gmock_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@

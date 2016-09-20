@@ -2,7 +2,6 @@
 #define RapidLab_arithmetic_hpp
 
 #include "interval.hpp"
-#include "constants.hpp"
 
 #include <cmath>
 

@@ -2,7 +2,6 @@
 #include "gmock/gmock.h"
 
 #include "interval/core.hpp"
-#include "interval/io.hpp"
 
 #include <iomanip>
 #include <cfenv>
@@ -358,10 +357,10 @@ TEST_F(APositiveInterval, hasCorrectReciprocal) {
 TEST_F(APositiveInterval, hasCorrectReciprocalHavingCorrectRounding) {
     interval a = aTenthInterval;
 
-    interval c = 1.0 / a;
+    interval c = 1.1 / a;
 
-    EXPECT_THAT(c.lower(), Lt(10));
-    EXPECT_THAT(c.upper(), Gt(10));
+    EXPECT_THAT(c.lower(), Lt(11));
+    EXPECT_THAT(c.upper(), Gt(11));
 }
 
 TEST_F(ANegativeInterval, hasCorrectReciprocal) {
@@ -376,10 +375,10 @@ TEST_F(ANegativeInterval, hasCorrectReciprocal) {
 TEST_F(ANegativeInterval, hasCorrectReciprocalHavingCorrectRounding) {
     interval a = -aTenthInterval;
 
-    interval c = 1.0 / a;
+    interval c = 1.1 / a;
 
-    EXPECT_THAT(c.lower(), Lt(-10));
-    EXPECT_THAT(c.upper(), Gt(-10));
+    EXPECT_THAT(c.lower(), Lt(-11));
+    EXPECT_THAT(c.upper(), Gt(-11));
 }
 
 /////////////////////
