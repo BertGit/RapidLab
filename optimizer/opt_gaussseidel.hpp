@@ -1,34 +1,27 @@
-//
-//  gaussseidel.hpp
-//  RapidLab
-//
-//  Created by Bertram Müller on 09.05.12.
-//  Copyright (c) 2012 University of Stuttgart. All rights reserved.
-//
-
 #ifndef RapidLab_opt_gaussseidel_hpp
 #define RapidLab_opt_gaussseidel_hpp
 
-#include <Eigen/Core>
-#include <Eigen/LU>
+template <size_t _size_p>
+int optimizer<_size_p>::gauss_seidel(
+    const Eigen::Matrix<interval, _size_p, _size_p>& A,
+    const std::array<double, _size_p>& b,
+    box<_size_p>& x,
+    const std::array<double, _size_p>& x_tilda) const {
 
-template <int _size_p>
-int ioptimizer<_size_p>::gauss_seidel(matrix<interval, _size_p, _size_p> const &A, array<interval, _size_p> const &b, array<interval, _size_p> &x, array<interval, _size_p> const &x_tilda) const {
-    
-    int dim = _size_p;
-    
-    matrix<double, _size_p, _size_p> midMatrix = mid<_size_p, _size_p>(A);
-    array<double, _size_p * _size_p> midMatrix_data = midMatrix.data();
-    
-    Eigen::Matrix3d eig_matrix(midMatrix_data.data());
-    Eigen::Matrix3d C = eig_matrix.inverse();
-
-    if (isinf(C(0,0))) {
-        cout << "inf";
-        return 0;
+    Eigen::Matrix<double, _size_p, _size_p> mid_matrix;
+    for (size_t k = 0; k < _size_p; ++k) {
+        for (size_t j = 0; j < _size_p; ++j) {
+            mid_matrix(k,j) = mid(A(k,j)); // Flip k and j ?
+        }
     }
 
-    for (int k = 0; k < dim; k++) {
+    Eigen::Matrix<double, _size_p, _size_p> C = mid_matrix.inverse();
+
+    // if (std::isinf(C(0,0))) {
+    //     return 0;
+    // }
+//
+    for (size_t k = 0; k < _size_p; ++k) {
         //Compute preconditioning row
 //        double max_mag = 0.0;
 //        int i0 = 0;
@@ -44,9 +37,9 @@ int ioptimizer<_size_p>::gauss_seidel(matrix<interval, _size_p, _size_p> const &
 //        //EDIT LINE
 //        //i0 = k;
 //        //*********
-//        
+//
 //        //cout << A;
-//        
+//
 //        interval sum(0);
 //        for (int j = 0; j < _size_p; j++) {
 //            if (j != k) {
@@ -57,27 +50,26 @@ int ioptimizer<_size_p>::gauss_seidel(matrix<interval, _size_p, _size_p> const &
 //        interval denominator = A(i0,k);
 
         interval sum(0);
-        for (int j = 0; j < _size_p; j++) {
+        for (size_t j = 0; j < _size_p; j++) {
             if (j != k) {
                 interval A_aux(0);
-                for (int i = 0; i < _size_p; i++) {
+                for (size_t i = 0; i < _size_p; i++) {
                     A_aux = A_aux + C(k,i) * A(i,j);
                 }
                 sum = sum + A_aux * (x[j] - x_tilda[j]);
             }
         }
         interval b_aux(0);
-        for (int i = 0; i < _size_p; i++) {
+        for (size_t i = 0; i < _size_p; i++) {
             b_aux = b_aux + C(k,i) * b[i];
         }
         interval numerator = (-b_aux + sum);
         interval A_aux(0);
-        for (int i = 0; i < _size_p; i++) {
+        for (size_t i = 0; i < _size_p; i++) {
             A_aux = A_aux + C(k,i) * A(i,k);
         }
         interval denominator = A_aux;
 
-        
         if (!zero_in(intersect(numerator, denominator))) {
             if (zero_in(denominator)) {
                 interval div1, div2;
@@ -103,15 +95,15 @@ int ioptimizer<_size_p>::gauss_seidel(matrix<interval, _size_p, _size_p> const &
             } else {
                 interval x_prime;
                 x_prime = x_tilda[k] - (numerator / denominator);
-                
+
                 x[k] = intersect(x_prime, x[k]);
-                if (isnan(x[k].lower())) {
+                if (std::isnan(x[k].lower())) {
                     return 1;
                 }
             }
         }
     }
-    
+
     return 0;
 }
 

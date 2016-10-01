@@ -2,6 +2,7 @@
 #include "gmock/gmock.h"
 
 #include "interval/core.hpp"
+#include <boost/timer.hpp>
 
 #include <iomanip>
 #include <cfenv>
@@ -439,6 +440,33 @@ TEST_F(AZeroSpanInterval, canBeSquared) {
     EXPECT_THAT(c, Eq(d));
 }
 
+/////////
+// ABS //
+/////////
+// Rounding implicitly checked
+TEST_F(APositiveInterval, hasAbsolute) {
+    interval a(0.1,4.1);
+    interval c = abs(a);
+
+    EXPECT_THAT(c, Eq(a));
+}
+
+TEST_F(ANegativeInterval, hasAbsolute) {
+    interval a(-4.1,-0.1);
+    interval c = abs(a);
+
+    EXPECT_THAT(c, Eq(-a));
+}
+
+TEST_F(AZeroSpanInterval, hasAbsolute) {
+    interval a(-4.1,0.1);
+    interval c = abs(a);
+
+    interval d = -a;
+    d.set_lower(0.0);
+    EXPECT_THAT(c, Eq(d));
+}
+
 ////////////////
 // PROPERTIES //
 ////////////////
@@ -466,4 +494,17 @@ TEST_F(AnInterval, hasCheckWhetherItSpansZero) {
     EXPECT_THAT(zero_in(a), Eq(true));
     EXPECT_THAT(zero_in(b), Eq(false));
     EXPECT_THAT(zero_in(c), Eq(false));
+}
+
+TEST_F(AnInterval, hasIntersection) {
+    interval a(2,4);
+    interval b(-5,3);
+    interval c(-8, -1);
+    interval d = intersect(a,b);
+    interval e = intersect(b,c);
+    interval f = intersect(a,c);
+    EXPECT_THAT(d, Eq(interval(2,3)));
+    EXPECT_THAT(e, Eq(interval(-5,-1)));
+    EXPECT_THAT(std::isnan(f.lower()), Eq(true));
+    EXPECT_THAT(std::isnan(f.upper()), Eq(true));
 }

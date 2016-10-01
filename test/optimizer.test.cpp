@@ -4,6 +4,7 @@
 #include "interval/core.hpp"
 
 #include "optimizer/optimizer.hpp"
+#include "interval/eigen_support.hpp"
 
 #include <iomanip>
 
@@ -33,8 +34,17 @@ interval rosenbrock2d(const box<2>& b) {
 }
 std::array<interval, 2> rosenbrock2d_d(const box<2>& b) {
     std::array<interval, 2> s;
-    s[1] = 100 * 2 * (b[1] - sqr(b[0]));
-    s[0] = s[1] * -2 * b[0] + 2 * (b[0] - 1);
+    s[1] = 200 * (b[1] - sqr(b[0]));
+    s[0] = (1 - s[1]) * 2 * b[0] - 2;
+    return s;
+}
+Eigen::Matrix<interval, 2, 2> rosenbrock2d_dd(const box<2>& b) {
+    Eigen::Matrix<interval, 2, 2> s;
+    // 200*(b1 - b0^2) * -2*b0 + 2(b0 - 1)
+    s(0,0) = -400 * b[0] * -2 * b[0] + -400 * (b[1] - sqr(b[0])) + 2;
+    s(1,1) = 200;
+    s(0,1) = -400 * b[0];
+    s(1,0) = s(0,1);
     return s;
 }
 
@@ -71,10 +81,10 @@ TEST_F(AnOptimizer, canSolveRosenbrockFunctionIn2D) {
     options_t o;
     o.epsilon = 1e-6;
     optimizer<2> opt(rosenbrock2d, o);
-    box<2> b({interval(-5,5), interval(-5,5)});
+    box<2> b({interval(0,2), interval(-1,1.5)});
     box<2> s = opt.solve(b);
 
-    interval tolerance(-1e-6,1e-6);
+    interval tolerance(-1e-5,1e-5);
     EXPECT_THAT(contains(0.0 + tolerance, opt.minimum()), Eq(true));
     EXPECT_THAT(contains(s[0] + tolerance, 1.0), Eq(true));
     EXPECT_THAT(contains(s[1] + tolerance, 1.0), Eq(true));
@@ -94,7 +104,28 @@ TEST_F(AnOptimizer, canSolveRosenbrockFunctionIn2DProvidingFirstDerivative) {
     box<2> b({interval(-5,5), interval(-5,5)});
     box<2> s = opt.solve(b);
 
-    interval tolerance(-1e-6,1e-6);
+    interval tolerance(-1e-5,1e-5);
+    EXPECT_THAT(contains(0.0 + tolerance, opt.minimum()), Eq(true));
+    EXPECT_THAT(contains(s[0] + tolerance, 1.0), Eq(true));
+    EXPECT_THAT(contains(s[1] + tolerance, 1.0), Eq(true));
+    EXPECT_THAT(diam(s[0]), Lt(1e-6));
+    EXPECT_THAT(diam(s[1]), Lt(1e-6));
+
+    std::cout << "CalcTime: " << opt.time() << "\n";
+    std::cout << "Boxes: " << opt.box_count() << "\n";
+}
+
+TEST_F(AnOptimizer, canSolveRosenbrockFunctionIn2DProvidingFirstAndSecondDerivative) {
+    options_t o;
+    o.epsilon = 1e-6;
+    optimizer<2> opt(rosenbrock2d, o);
+    opt.set_first_derivative(rosenbrock2d_d);
+    opt.set_second_derivative(rosenbrock2d_dd);
+
+    box<2> b({interval(-5,5), interval(-5,5)});
+    box<2> s = opt.solve(b);
+
+    interval tolerance(-1e-5,1e-5);
     EXPECT_THAT(contains(0.0 + tolerance, opt.minimum()), Eq(true));
     EXPECT_THAT(contains(s[0] + tolerance, 1.0), Eq(true));
     EXPECT_THAT(contains(s[1] + tolerance, 1.0), Eq(true));

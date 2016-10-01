@@ -3,6 +3,7 @@
 
 #include "interval/core.hpp"
 #include "interval/box.hpp"
+#include "interval/eigen_support.hpp"
 
 #include <array>
 #include <chrono>
@@ -26,12 +27,13 @@ class optimizer {
 public:
     using func_t = std::function<interval(const box<_size_p>& b)>;
     using func_d_t = std::function<std::array<interval, _size_p>(const box<_size_p>& b)>;
-    //using func_dd_t = std::function<interval(const box<_size_p>& b)>;
+    using func_dd_t = std::function<Eigen::Matrix<interval, _size_p, _size_p>(const box<_size_p>& b)>;
 
     optimizer(const func_t& func, options_t opt = options_t())
     : func(func), options(opt) {}
 
     void set_first_derivative(func_d_t f) { func_d = f; }
+    void set_second_derivative(func_dd_t f) { func_dd = f; }
 
     box<_size_p> solve(const box<_size_p>& box0);
 
@@ -42,6 +44,7 @@ public:
 private:
     func_t func;
     func_d_t func_d;
+    func_dd_t func_dd;
     options_t options;
     box<_size_p> box0;
 
@@ -51,11 +54,17 @@ private:
 
     std::array<box<_size_p>, 2> bisection(const box<_size_p>& b) const;
     int check_box(box<_size_p>& b);
+    int gauss_seidel(
+        const Eigen::Matrix<interval, _size_p, _size_p>& A,
+        const std::array<double, _size_p>& b,
+        box<_size_p> &x,
+        const std::array<double, _size_p>& x_tilda) const;
 };
 
 #include "opt_checkbox.hpp"
 #include "opt_bisection.hpp"
 #include "opt_algorithm.hpp"
+#include "opt_gaussseidel.hpp"
 
 } // namespace rapidlab
 

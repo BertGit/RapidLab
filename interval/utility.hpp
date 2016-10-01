@@ -83,14 +83,12 @@ inline int max_element(array<double, _size> const& arr) {
 }
 
 inline interval intersect(interval const& a, interval const& b) {
-    __m128d x = a.value().vec;
-    __m128d y = b.value().vec;
+    __m128d x = _mm_min_pd(a.value(), b.value());
 
-    m128d r;
-	r.vec = _mm_min_pd(x, y);
-
-	if (-r.d[0] <= r.d[1])   return interval(r.vec);
-    else                return interval(NAN);
+	if (-x.d[0] <= x.d[1]) {
+        return interval(x);
+    }
+    return interval(NAN);
 }
 
 inline double max(double a, double b) {

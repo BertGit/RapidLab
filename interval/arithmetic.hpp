@@ -20,7 +20,7 @@ inline double to_int(double r) {
 }
 
 inline interval recip(const interval& a) {
-    __m128d x = a.value().vec;
+    __m128d x = a.value();
 
 	// Interval spans over zero
     if (_mm_movemask_pd(_mm_cmple_pd((__m128d) {0, 0}, x)) == 3) {
@@ -38,7 +38,7 @@ inline interval recip(const interval& a) {
 // OPERATOR EQUAL //
 ////////////////////
 inline bool operator==(const interval& a, const interval& b) {
-    __m128d vcmp = _mm_cmpeq_pd(a.value().vec, b.value().vec);
+    __m128d vcmp = _mm_cmpeq_pd(a.value(), b.value());
     return _mm_movemask_pd(vcmp) == 3;
 }
 
@@ -54,14 +54,14 @@ inline const interval& operator+(const interval& a) {
 }
 
 inline interval operator-(const interval& a) {
-    return interval(_mm_shuffle_pd(a.value().vec, a.value().vec, 1));
+    return interval(_mm_shuffle_pd(a.value(), a.value(), 1));
 }
 
 ///////////////////
 // OPERATOR PLUS //
 ///////////////////
 inline interval& operator+=(interval& a, const interval& b) {
-    a.value().vec = _mm_add_pd(a.value().vec, b.value().vec);
+    a.value() = _mm_add_pd(a.value(), b.value());
     return a;
 }
 
@@ -88,9 +88,9 @@ inline interval operator-(const interval& a, const interval& b) {
 /////////////////////////////
 inline interval& operator*=(interval& a, double b) {
     if (b < 0) {
-        a.value().vec = _mm_mul_pd((-a).value().vec, _mm_set1_pd(-b));
+        a.value() = _mm_mul_pd((-a).value(), _mm_set1_pd(-b));
     } else {
-        a.value().vec = _mm_mul_pd(a.value().vec, _mm_set1_pd(b));
+        a.value() = _mm_mul_pd(a.value(), _mm_set1_pd(b));
     }
     return a;
 }
@@ -106,8 +106,8 @@ inline interval operator*(double a, const interval& b) {
 }
 
 inline interval& operator*=(interval& a, const interval& b) {
-    __m128d x = a.value().vec;
-    __m128d y = b.value().vec;
+    __m128d x = a.value();
+    __m128d y = b.value();
     __m128d t1 = _mm_castsi128_pd(_mm_shuffle_epi32(_mm_castpd_si128(x), 0xee));
 	__m128d t2 = _mm_castsi128_pd(_mm_shuffle_epi32(_mm_castpd_si128(y), 0xee));
 
@@ -123,7 +123,7 @@ inline interval& operator*=(interval& a, const interval& b) {
 		x = detail::c_swap(_mm_xor_pd(x, c3), c1);
 		y = detail::c_swap(_mm_xor_pd(y, c3), c2);
 
-		a.value().vec = x * _mm_xor_pd(y, c3);
+		a.value() = x * _mm_xor_pd(y, c3);
 	} else {
     	// Zero overlap
     	t1 = _mm_mul_pd(_mm_castsi128_pd(
@@ -131,7 +131,7 @@ inline interval& operator*=(interval& a, const interval& b) {
                 _mm_unpacklo_pd(y, y));
     	t2 = _mm_mul_pd(t2, x);
 
-        a.value().vec = _mm_max_pd(t1, t2);
+        a.value() = _mm_max_pd(t1, t2);
     }
     return a;
 }
@@ -147,11 +147,11 @@ inline interval operator*(const interval& a, const interval& b) {
 ///////////////////////
 inline interval& operator/=(interval& a, double b) {
     if (b == 0) {
-        a.value().vec = _mm_set1_pd(INFINITY);
+        a.value() = _mm_set1_pd(INFINITY);
     } else if (b < 0) {
-        a.value().vec = _mm_div_pd((-a).value().vec, _mm_set1_pd(-b));
+        a.value() = _mm_div_pd((-a).value(), _mm_set1_pd(-b));
     } else {
-        a.value().vec = _mm_div_pd(a.value().vec, _mm_set1_pd(b));
+        a.value() = _mm_div_pd(a.value(), _mm_set1_pd(b));
     }
     return a;
 }
@@ -181,9 +181,9 @@ inline interval operator/(const interval& a, const interval& b) {
 // SQRT AND SQR //
 //////////////////
 inline interval sqrt(const interval& a) {
-	if (a.value().d[0] > 0) return interval(_mm_set1_pd(NAN));
+	if (a.value()[0] > 0) return interval(_mm_set1_pd(NAN));
 
-    __m128d x = a.value().vec;
+    __m128d x = a.value();
     // Two roundings to counteract with multiply
     x *= (__m128d) {-0x1.ffffffffffff8p-1, 1.0};
 	x = _mm_sqrt_pd(x);
@@ -192,12 +192,12 @@ inline interval sqrt(const interval& a) {
 }
 
 inline interval sqr(const interval& a) {
-    __m128d x = a.value().vec;
+    __m128d x = a.value();
 
     // Take high bit value
     __m128d t1 = _mm_castsi128_pd(_mm_shuffle_epi32(_mm_castpd_si128(x), 0xee));
 
-    if(_mm_movemask_pd(_mm_xor_pd(x, t1))) {
+    if (_mm_movemask_pd(_mm_xor_pd(x, t1))) {
         // Interval not containing zero
         __m128d c = _mm_set1_pd(0.0);
         // Compare: is sup(x) <= 0?
@@ -210,10 +210,18 @@ inline interval sqr(const interval& a) {
     }
     // Interval contains zero
     __m128d t2 = _mm_unpacklo_pd(x, x);
-	m128d t5;
-	t5.vec = _mm_max_pd(_mm_mul_pd(t1, t1), _mm_mul_pd(t2, t2));
-	__m128d result = _mm_set_pd(t5.d[0], -0.0);
+	__m128d t5 = _mm_max_pd(_mm_mul_pd(t1, t1), _mm_mul_pd(t2, t2));
+	__m128d result = _mm_set_pd(t5[0], -0.0);
     return interval(result);
+}
+
+inline interval abs(const interval& a) {
+    if (a.lower() > 0) {
+        return a;
+    } else if (a.upper() <= 0) {
+        return -a;
+    }
+    return interval(0, std::max(-a.lower(), a.upper()));
 }
 
 ///////////////////////////
@@ -252,6 +260,14 @@ inline interval fmod(const interval& a, const interval& b)
 //     interval r = cos(a - pi_half());
 //     return r;
 // }
+
+/////////////////////////////
+// EIGEN TYPE REQUIREMENTS //
+/////////////////////////////
+inline const interval& conj(const interval& x)  { return x; }
+inline const interval& real(const interval& x)  { return x; }
+inline interval imag(const interval&)    { return 0.; }
+inline interval abs2(const interval& x)  { return sqr(x); }
 
 } // namespace rapidlab
 

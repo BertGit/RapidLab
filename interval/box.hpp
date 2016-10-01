@@ -9,7 +9,7 @@ template<size_t _size> class box;
 
 template<size_t _size>
 std::ostream& operator<<(std::ostream& os, const box<_size>& b) {
-    for (int i = 0; i < _size; i++) {
+    for (size_t i = 0; i < _size; ++i) {
         os << b[i] << "\n";
     }
     return os;
