@@ -40,12 +40,15 @@ std::array<interval, 2> rosenbrock2d_d(const box<2>& b) {
 }
 Eigen::Matrix<interval, 2, 2> rosenbrock2d_dd(const box<2>& b) {
     Eigen::Matrix<interval, 2, 2> s;
-    // 200*(b1 - b0^2) * -2*b0 + 2(b0 - 1)
     s(0,0) = -400 * b[0] * -2 * b[0] + -400 * (b[1] - sqr(b[0])) + 2;
     s(1,1) = 200;
     s(0,1) = -400 * b[0];
     s(1,0) = s(0,1);
     return s;
+}
+
+interval bukin_no6(const box<2>& b) {
+    return 100 * sqrt(abs(b[1] - 0.01 * sqr(b[0]))) + 0.01 * abs(b[0] + 10);
 }
 
 TEST_F(AnOptimizer, canSolveOneDimensionalEquationWithDefaultSettings) {

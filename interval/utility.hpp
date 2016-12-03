@@ -1,17 +1,9 @@
-//
-//  utility.hpp
-//  RapidLab
-//
-//  Created by Bertram Müller on 30.04.12.
-//  Copyright (c) 2012 University of Stuttgart. All rights reserved.
-//
-
 #ifndef RapidLab_utility_hpp
 #define RapidLab_utility_hpp
 
 #include "interval.hpp"
 #include "box.hpp"
-// #include "../matrix/matrix.hpp"
+
 #ifdef _MSC_VER
 	#define INFINITY (DBL_MAX+DBL_MAX)
 	#define NAN (INFINITY-INFINITY)
@@ -30,17 +22,6 @@ namespace rapidlab {
 
 using namespace std;
 using namespace tr1;
-
-
-
-//template<int _size>
-//inline array<double, _size> mid(box<_size> const& b) {
-//    array<double, _size> r;
-//    for (int i = 0; i < _size; i++) {
-//        r[i] = mid(b[i]);
-//    }
-//    return r;
-//}
 
 template<int _size>
 inline array<interval, _size> mid(box<_size> const& b) {
@@ -94,18 +75,6 @@ inline interval intersect(interval const& a, interval const& b) {
 inline double max(double a, double b) {
     return (a > b) ? a : b;
 }
-
-// template<int rows, int cols>
-// inline matrix<double, rows, cols> mid(matrix<interval, rows, cols> const& m) {
-//     array<double, rows * cols> r;
-//     array<interval, rows * cols> m_data = m.data();
-//
-//     for (int i = 0; i < rows*cols; i++) {
-//         r[i] = mid(m_data[i]);
-//     }
-//
-//     return matrix<double, rows, cols>(r);
-// }
 
 template<int _size>
 inline array<interval, _size> neg(array<interval, _size> const &arr) {

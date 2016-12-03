@@ -2,6 +2,7 @@
 #define RapidLab_arithmetic_hpp
 
 #include "interval.hpp"
+#include "constants.hpp"
 
 #include <cmath>
 
@@ -181,6 +182,7 @@ inline interval operator/(const interval& a, const interval& b) {
 // SQRT AND SQR //
 //////////////////
 inline interval sqrt(const interval& a) {
+    lastfun = 2;
 	if (a.value()[0] > 0) return interval(_mm_set1_pd(NAN));
 
     __m128d x = a.value();
@@ -216,6 +218,7 @@ inline interval sqr(const interval& a) {
 }
 
 inline interval abs(const interval& a) {
+    lastfun = 3;
     if (a.lower() > 0) {
         return a;
     } else if (a.upper() <= 0) {
@@ -237,29 +240,30 @@ inline interval fmod(const interval& a, const interval& b)
 //////////////////
 // TRIGONOMETRY //
 //////////////////
-// inline interval cos(const interval& a) {
-//     // Get lower bound within [0, pi]
-//     const interval pi2 = pi_twice();
-//     interval tmp = fmod(a, pi2);
-//     if (diam(tmp) >= pi2.lower()) return interval(-1, 1); // full period
-//     if (tmp.lower() >= pi_upper()) return -cos(tmp - pi());
-//     double l = tmp.lower();
-//     double u = tmp.upper();
-//
-//     // Separate into monotone subintervals
-//     if (u <= pi_lower()) {
-//         return interval(std::cos(u), std::cos(l));
-//     } else if (u <= pi2.lower()) {
-//         return interval(-1, std::cos(std::min(pi2.lower() - u, l)));
-//     } else {
-//         return interval(-1, 1);
-//     }
-// }
-//
-// inline interval sin(const interval& a) {
-//     interval r = cos(a - pi_half());
-//     return r;
-// }
+inline interval cos(const interval& a) {
+    // Get lower bound within [0, pi]
+    const interval pi2 = pi_twice();
+    interval tmp = fmod(a, pi2);
+    if (diam(tmp) >= pi2.lower()) return interval(-1, 1); // full period
+    if (tmp.lower() >= pi_upper()) return -cos(tmp - pi());
+    double l = tmp.lower();
+    double u = tmp.upper();
+
+    // Separate into monotone subintervals
+    if (u <= pi_lower()) {
+        return interval(std::cos(u), std::cos(l));
+    } else if (u <= pi2.lower()) {
+        return interval(-1, std::cos(std::min(pi2.lower() - u, l)));
+    } else {
+        return interval(-1, 1);
+    }
+}
+
+inline interval sin(const interval& a) {
+    lastfun = 1;
+    interval r = cos(a - pi_half());
+    return r;
+}
 
 /////////////////////////////
 // EIGEN TYPE REQUIREMENTS //

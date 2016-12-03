@@ -5,6 +5,8 @@
 #include <iostream>
 #include <cassert>
 
+#include <exception>
+
 namespace rapidlab {
 
 class interval

@@ -1,11 +1,3 @@
-//
-//  constants.hpp
-//  RapidLab
-//
-//  Created by Bertram Müller on 16.05.12.
-//  Copyright (c) 2012 University of Stuttgart. All rights reserved.
-//
-
 #ifndef RapidLab_constants_hpp
 #define RapidLab_constants_hpp
 
