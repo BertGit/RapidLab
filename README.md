@@ -1,2 +1,2 @@
 # RapidLab
-High-Performance Interval Library - WORK IN PROGRESS
+High-Performance Interval Library using SSE2 instruction sets for fast SIMD operations
