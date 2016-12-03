@@ -182,7 +182,6 @@ inline interval operator/(const interval& a, const interval& b) {
 // SQRT AND SQR //
 //////////////////
 inline interval sqrt(const interval& a) {
-    lastfun = 2;
 	if (a.value()[0] > 0) return interval(_mm_set1_pd(NAN));
 
     __m128d x = a.value();
@@ -218,7 +217,6 @@ inline interval sqr(const interval& a) {
 }
 
 inline interval abs(const interval& a) {
-    lastfun = 3;
     if (a.lower() > 0) {
         return a;
     } else if (a.upper() <= 0) {
@@ -260,7 +258,6 @@ inline interval cos(const interval& a) {
 }
 
 inline interval sin(const interval& a) {
-    lastfun = 1;
     interval r = cos(a - pi_half());
     return r;
 }
